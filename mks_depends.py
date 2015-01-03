@@ -1,6 +1,7 @@
 
-import kerbal_part_parser
+import kerbal_part_parser.part_parser
 import mks_part_tools
+import itertools
 
 def yield_table_rows(inputs, outputs):
     def fmt_value(value):
@@ -13,40 +14,19 @@ def yield_table_rows(inputs, outputs):
 
         return fmt % tuple(value)
     
-    inputs = inputs.iteritems()
-    outputs = outputs.iteritems()
-    
-    i = next(inputs, None)
-    o = next(outputs, None)
-    while i or o:
-        left = ""
-        right = ""
-        
-        if i:
-            if i[1] > 0.000001:
-                left = "%s: %f" % (i[0], i[1])
-            else:
-                left = "%s: %e" % (i[0], i[1])
-        if o:
-            if o[1] > 0.000001:
-                right = "%s: %f" % (o[0], o[1])
-            else:
-                right = "%s: %e" % (o[0], o[1])
-        
-        yield "| | %s | %s | " % (fmt_value(i), fmt_value(o))
-        
-        i = next(inputs, None)
-        o = next(outputs, None)
+    for i,o in itertools.zip_longest(inputs.items(),outputs.items()):
+        yield "| | %s | %s | " % (fmt_value(i), fmt_value(o))   
+
     
 def gen_converters_by_part(parts, converters):
     output = ""
-    for part_name, part_converters in sorted(converters.iteritems(), key=lambda x: parts[x[0]]['title']):
+    for part_name, part_converters in sorted(converters.items(), key=lambda x: parts[x[0]]['title']):
 
         if len(part_converters) > 0:
             output += "\n"
             output += "### %s" % (parts[part_name]['title'])
             
-        for converter_name, converter in sorted(part_converters.iteritems()):
+        for converter_name, converter in sorted(part_converters.items()):
             output += "\n"
             output += "| **%s** | Inputs | Outputs |\n" % converter_name
             output += "| --- | --- | --- |\n"
@@ -58,7 +38,7 @@ def gen_converters_by_part(parts, converters):
 
 def gen_resource_sources(mks_parts, sources):
     output = ""
-    for resource_name, source_list in sorted(sources.iteritems()):
+    for resource_name, source_list in sorted(sources.items()):
         output += "#### %s\n" % resource_name
         for source in sorted((mks_parts[source]['title'] for source in source_list)):
             output += " - %s\n" % source
@@ -84,10 +64,10 @@ you can lookup what can use it.
 '''
 
 if __name__ == "__main__":
-    ksp_base_dir = r"D:\Steam\SteamApps\common\Kerbal Space Program\\"
-    mks_dir = ksp_base_dir + r"GameData\UmbraSpaceIndustries\MKS\Parts\\"
+    ksp_base_dir = r"C:\Users\e117650\Documents\borlik\personal\games\ksp\KSP_win\\"
+    mks_dir = ksp_base_dir + r"GameData\UmbraSpaceIndustries\Kolonization\Parts\\"
     
-    data = kerbal_part_parser.parse_cfg_dirs(mks_dir, stop_on_error=False)
+    data = kerbal_part_parser.part_parser.parse_cfg_dirs(mks_dir, stop_on_error=False)
     mks_parts = mks_part_tools.load_mks_parts(data)
 
     converters = mks_part_tools.extract_all_converters(mks_parts)
@@ -97,6 +77,7 @@ if __name__ == "__main__":
     resource_sources = gen_resource_sources(mks_parts, sources)
     resource_depends = gen_resource_sources(mks_parts, depends)
     
-    print page_template % (available_conversions, resource_sources, resource_depends)
+    print(page_template % (available_conversions, resource_sources, resource_depends))
+    
 
     

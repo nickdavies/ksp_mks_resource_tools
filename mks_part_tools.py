@@ -18,17 +18,20 @@ def parse_resource_list(data, is_output=False):
 
 def extract_converters(part):
     for module in part.get('MODULE', []):
-        if 'converterName' in module:
-            name = module['converterName']
-            inputs = parse_resource_list(module['inputResources'], False)
-            outputs = parse_resource_list(module['outputResources'], True)
-            
+        if 'ConverterName' in module:
+            name = module['ConverterName']
+            inputs = {}
+            if 'RecipeInputs' in module:
+                inputs = parse_resource_list(module['RecipeInputs'], False)
+            outputs = {}
+            if 'RecipeOutputs' in module:
+                outputs = parse_resource_list(module['RecipeOutputs'], True)            
             yield name, inputs, outputs
 
 def extract_all_converters(parts):
     converters = collections.defaultdict(dict)
     
-    for part_name, part in parts.iteritems():
+    for part_name, part in parts.items():
         for converter_name, inputs, outputs in extract_converters(part):
             converters[part_name][converter_name] = {
                 "part_name": part_name,
@@ -44,7 +47,7 @@ def extract_names(items):
         yield item['name'], item
         
 def filter_parts_only(items):
-    for key, item in items.iteritems():
+    for key, item in items.items():
         if 'PART' in item:
             yield item['PART']
 
@@ -64,8 +67,8 @@ def build_resource_lists(converters, include_converter_name=False, ignore=set())
     sources = collections.defaultdict(set)
     depends = collections.defaultdict(set)
 
-    for part_name, part_converters in converters.iteritems():
-        for converter_name, converter in part_converters.iteritems():
+    for part_name, part_converters in converters.items():
+        for converter_name, converter in part_converters.items():
             
             name = part_name
             if include_converter_name:
