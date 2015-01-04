@@ -20,7 +20,7 @@ def typify(s):
     if ',' in s:
         split = tuple([typify(x) for x in s.split(',')])
         for i in split:
-            if not isinstance(i, basestring):
+            if not isinstance(i, str):
                 return split
         return s
     m_f = re_float.match(s)
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     parser.add_argument('paths', nargs='+', help='Configs or dirs to parse.')
     args = parser.parse_args()
 
-    d = parse_cfg_paths(args.paths)
+    d = parse_cfg_dirs(args.paths)
 
     if args.out:
         with open(args.out, 'w') as f:
